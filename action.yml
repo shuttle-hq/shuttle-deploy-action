@@ -2,33 +2,28 @@ name: Shuttle Deploy
 description: Deploy to Shuttle
 
 inputs:
-  deploy-key:
-    description: 'The key found at "https://www.shuttle.rs/login"'
+  shuttle-api-key:
+    description: The key found at https://console.shuttle.dev/account/overview
     required: true
   cargo-shuttle-version:
-    description: "Version of cargo-shuttle"
+    description: Version of cargo-shuttle
     required: false
     default: ""
   working-directory:
-    description: "The directory which includes the `Cargo.toml`"
+    description: The cargo workspace root
     required: false
-    default: "."
-  name:
-    description: "Name of the project (overrides crate name & Shuttle.toml)"
-    required: false
-    default: ""
-  allow-dirty:
-    description: "Allow uncommitted changes to be deployed"
-    required: false
-    default: "false"
-  no-test:
-    description: "Don't run tests before deployment"
-    required: false
-    default: "false"
+    default: .
+  project-id:
+    description: Project ID
+    required: true
   secrets:
     description: |
       Content of the `Secrets.toml` file, if any.
       Use multiline text with `|` in case of multiple secrets
+    required: false
+    default: ""
+  extra-args:
+    description: Extra args to the deploy command
     required: false
     default: ""
 
@@ -62,13 +57,8 @@ runs:
       shell: bash
 
     - name: Deploy to Shuttle
-      run: |
-        cargo shuttle deploy \
-        $(if [ "${{ inputs.name }}" != "" ]; then echo "--name ${{ inputs.name }}"; fi) \
-        $(if [ "${{ inputs.allow-dirty }}" != "false" ]; then echo --allow-dirty; fi) \
-        $(if [ "${{ inputs.no-test }}" != "false" ]; then echo --no-test; fi) \
-        | awk '!/Database URI.*?$/'
+      run: shuttle deploy --id ${{ inputs.project-id }} ${{ inputs.extra-args }}
       working-directory: ${{ inputs.working-directory }}
       env:
-        SHUTTLE_API_KEY: ${{ inputs.deploy-key }}
+        SHUTTLE_API_KEY: ${{ inputs.shuttle-api-key }}
       shell: bash

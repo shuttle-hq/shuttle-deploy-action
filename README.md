@@ -1,9 +1,8 @@
 # Shuttle Deploy Action
 
-This action automates the deployment of a Rust project to [Shuttle](https://www.shuttle.rs/). This action deploys the project to Shuttle, which builds it and hosts it.
+This action automates the deployment of a Rust project to [Shuttle](https://www.shuttle.dev/). This action deploys the project to Shuttle, which builds it and hosts it.
 
-Note that you need to have created a project on Shuttle before you can deploy to it. This action will NOT create a new project for you.
-You can see the documentation on how to create a project [here](https://docs.shuttle.rs/introduction/quick-start).
+Note that you need to have created a project on Shuttle before you can deploy to it. Provide the project ID in the inputs.
 
 **Shuttle Secrets** are being saved from previous deployments, therefore, they may be omitted for future deployments.  
 The choice is yours, whether you prefer to add **Shuttle Secrets** with a manual deployment, or in a continuous way using the `secrets` input of this action.
@@ -13,13 +12,12 @@ Read more about **Shuttle Secrets** [here](https://docs.shuttle.rs/resources/shu
 
 | Name                  | Description | Required | Default |
 |-----------------------| --- | --- | --- |
-| deploy-key            | The Shuttle API key | true | N/A |
+| shuttle-api-key       | The Shuttle API key | true | N/A |
+| project-id            | Project ID, starts with `proj_` | true | N/A |
 | cargo-shuttle-version | Version of cargo-shuttle | false | `""` (latest) |
-| working-directory     | The directory which includes the `Cargo.toml` | false | `"."` |
-| name                  | Override the project name | false | `""` |
-| allow-dirty           | Allow uncommitted changes to be deployed | false | `"false"` |
-| no-test               | Don't run tests before deployment | false | `"false"` |
+| working-directory     | The cargo workspace root | false | `"."` |
 | secrets               | Content of the `Secrets.toml` file, if any | false | `""` |
+| extra-args            | Extra args to the deploy command | false | `""` |
 
 ## Outputs
 
@@ -44,9 +42,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: shuttle-hq/deploy-action@main
+      - uses: shuttle-hq/deploy-action@v2
         with:
-          deploy-key: ${{ secrets.SHUTTLE_API_KEY }}
+          shuttle-api-key: ${{ secrets.SHUTTLE_API_KEY }}
+          project-id: proj_0123456789
 ```
 
 ### Example with all inputs
@@ -64,14 +63,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: shuttle-hq/deploy-action@main
+      - uses: shuttle-hq/deploy-action@v2
         with:
-          deploy-key: ${{ secrets.SHUTTLE_API_KEY }}
+          shuttle-api-key: ${{ secrets.SHUTTLE_API_KEY }}
+          project-id: proj_0123456789
           working-directory: "backend"
-          name: "my-project"
-          allow-dirty: "true"
-          no-test: "true"
-          cargo-shuttle-version: "0.28.1"
+          cargo-shuttle-version: "0.48.1"
+          extra-args: --allow-dirty --debug
           secrets: |
             MY_AWESOME_SECRET_1 = '${{ secrets.SECRET_1 }}'
             MY_AWESOME_SECRET_2 = '${{ secrets.SECRET_2 }}'
